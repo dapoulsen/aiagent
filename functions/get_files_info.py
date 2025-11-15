@@ -12,7 +12,14 @@ def get_files_info(working_directory, directory="."):
         return f'Error: "{directory}" is not a directory'
     
     try:
-        pass
+        entries = os.listdir(abs_full_path)
+        lines = []
+        for entry in entries:
+            p = os.path.join(abs_full_path, entry)
+            size = os.path.getsize(p)
+            is_dir = os.path.isdir(p)
+            lines.append(f'- {entry}: file_size={size} bytes, is_dir={is_dir}')
+        return "\n".join(lines)
     except Exception as e:
         return f'Error: {e}'
 
