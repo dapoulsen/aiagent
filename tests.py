@@ -1,26 +1,18 @@
 from functions.get_files_info import get_files_info
+from functions.get_file_content import get_file_content
 
-def test_calc_dot():
-    result = get_files_info("calculator", ".")
-    print("Result for current directory:")
+def test():
+    result = get_file_content("calculator", "main.py")
     print(result)
 
-def test_calc_pkg():
-    result = get_files_info("calculator", "pkg")
-    print("Result for 'pkg' directory:")
+    result = get_file_content("calculator", "pkg/calculator.py")
     print(result)
 
-def test_calc_bin():
-    result = get_files_info("calculator", "/bin")
-    print("Result for '/bin' directory:")
+    result = get_file_content("calculator", "/bin/cat")
     print(result)
 
-def test_calc_dotdotslash():
-    result = get_files_info("calculator", "../")
-    print("Result for '../' directory:")
+    result = get_file_content("calculator", "pkg/does_not_exist.py")
     print(result)
 
-test_calc_dot()
-test_calc_pkg()
-test_calc_bin()
-test_calc_dotdotslash()
+if __name__ == "__main__":
+    test()
