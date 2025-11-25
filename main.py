@@ -4,7 +4,7 @@ from google.genai import types
 from dotenv import load_dotenv
 import argparse
 from config import SYSTEM_PROMPT
-from call_function import available_functions
+from call_function import available_functions, call_function
 
 
 
@@ -46,16 +46,26 @@ def generate_content(client, messages, verbose):
             )
     )
 
+    function_parts = []
    
-    if verbose:
-        print("Prompt tokens: ", response.usage_metadata.prompt_token_count)
-        print("Response tokens: ", response.usage_metadata.candidates_token_count)
+    for function_call in response.function_calls:
+        function_call_result = call_function(function_call, verbose=verbose)
+        part = function_call_result.parts[0]
+        if not part.function_response or not part.function_response.response:
+            raise Exception("Fatal exeption!!!")
+        function_parts.append(part)
 
-    if not response.function_calls:
-        return response.text
+        if verbose:
+           print(f"-> {function_call_result.parts[0].function_response.response}")
+        
+    # return function_parts
+   
+        
 
-    for call in response.function_calls:
-        print(f'Calling function: {call.name}({call.args})')
+
+
+
+    
  
 
 if __name__ == "__main__":
