@@ -46,17 +46,29 @@ def generate_content(client, messages, verbose):
             )
     )
 
+    if verbose:
+        print("Prompt tokens: ", response.usage_metadata.prompt_token_count)
+        print("Response tokens: ", response.usage_metadata.candidates_token_count)
+
+    if not response.function_calls:
+        return response.text
+
     function_parts = []
+
    
     for function_call in response.function_calls:
         function_call_result = call_function(function_call, verbose=verbose)
-        part = function_call_result.parts[0]
-        if not part.function_response or not part.function_response.response:
-            raise Exception("Fatal exeption!!!")
-        function_parts.append(part)
-
+        if (
+            not function_call_result.parts
+            or not function_call_result.parts[0].function_response
+        ):
+            raise Exception("empty function call results")
         if verbose:
-           print(f"-> {function_call_result.parts[0].function_response.response}")
+            print(f'-> {function_call_result.parts[0].function_response.response}')
+        function_parts.append(function_call_result.parts[0])
+    
+    if not function_parts:
+        raise Exception("No function responses generated, exiting.")
         
     # return function_parts
    
