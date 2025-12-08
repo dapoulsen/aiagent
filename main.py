@@ -1,4 +1,5 @@
 import os
+import sys
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
@@ -12,7 +13,6 @@ from call_function import available_functions, call_function
 
 def main():
     load_dotenv()
-
 
     parser = argparse.ArgumentParser()
     parser.add_argument("prompt")
@@ -34,7 +34,23 @@ def main():
     if verbose:
         print(f'User prompt: {user_prompt}\n')
     
-    generate_content(client, messages, verbose)
+    iterations = 0
+    while True:
+        iterations += 1
+        if iterations > 15:
+            print(f'Maximum iterations of 15 is reached')
+            sys.exit(1)
+        
+        try:
+            final_response = generate_content(client, messages, verbose)
+            if final_response:
+                print('Final response:')
+                print(final_response)
+                break
+        
+        except Exception as e:
+            print(f'Error in generate_content: {e}')
+
     
 
 def generate_content(client, messages, verbose):
@@ -49,11 +65,15 @@ def generate_content(client, messages, verbose):
     if verbose:
         print("Prompt tokens: ", response.usage_metadata.prompt_token_count)
         print("Response tokens: ", response.usage_metadata.candidates_token_count)
+    
+    if response.cadidates:
+        for candidate in response.candidates:
+            messages.append(candidate.content)
 
     if not response.function_calls:
         return response.text
 
-    function_parts = []
+    function_responses = []
 
    
     for function_call in response.function_calls:
@@ -65,10 +85,12 @@ def generate_content(client, messages, verbose):
             raise Exception("empty function call results")
         if verbose:
             print(f'-> {function_call_result.parts[0].function_response.response}')
-        function_parts.append(function_call_result.parts[0])
+        function_responses.append(function_call_result.parts[0])
     
-    if not function_parts:
+    if not function_responses:
         raise Exception("No function responses generated, exiting.")
+    
+    messages.append(types.Content(role="user", parts=function_responses))
         
     # return function_parts
    
